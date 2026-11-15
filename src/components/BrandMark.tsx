@@ -1,17 +1,21 @@
 /**
  * 싱픽 브랜드 마크 — 앱 아이콘(3D 아트워크)과 같은 이미지를 헤더에서 그대로 쓴다.
- * public/icon-192.png 를 36px(레티나 72px)로 표시하므로 충분히 선명하다.
+ * 36px에서도 또렷하게 보이도록 네온 그라데이션 링을 둘러 준다.
  */
 export function BrandMark({ className = '' }: { className?: string }) {
   return (
-    <img
-      src={`${import.meta.env.BASE_URL}icon-192.png`}
-      alt="싱픽"
-      width={72}
-      height={72}
-      decoding="async"
-      className={`${className} rounded-[28%] object-cover shadow-[0_0_22px_-6px_rgba(167,139,250,0.9)]`}
-    />
+    <span
+      className={`${className} inline-grid shrink-0 place-items-center rounded-[28%] bg-gradient-to-br from-neon-400 via-fuchsia-400 to-lime-300 p-[1.5px] shadow-[0_0_18px_-4px_rgba(167,139,250,0.9)]`}
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}icon-192.png`}
+        alt="싱픽"
+        width={72}
+        height={72}
+        decoding="async"
+        className="h-full w-full rounded-[26%] object-cover"
+      />
+    </span>
   );
 }
 
@@ -25,7 +29,7 @@ export function BrandLockup({
 }) {
   return (
     <span className={`flex items-center gap-2 ${className}`}>
-      <BrandMark className={`${markClassName} shrink-0`} />
+      <BrandMark className={markClassName} />
       <span className="text-[18px] font-black leading-none tracking-tight text-white">싱픽</span>
     </span>
   );
