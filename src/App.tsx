@@ -69,7 +69,7 @@ export default function App() {
         <div className="mx-auto w-full max-w-2xl px-4 pb-10 pt-[calc(var(--safe-t)+16px)]">
           <header className="mb-4 flex items-center justify-between">
             <a href="#/" className="flex items-center gap-2">
-              <BrandMark className="h-8 w-8 shrink-0 rounded-[28%] shadow-[0_0_20px_-6px_rgba(167,139,250,0.8)]" />
+              <BrandMark className="h-8 w-8 shrink-0" />
               <span className="text-[17px] font-black tracking-tight text-white">싱픽</span>
             </a>
             <a href="#/" className="btn-soft px-3 py-1.5 text-[12px]">
@@ -88,7 +88,7 @@ export default function App() {
       <div className="mx-auto w-full max-w-2xl px-4 pb-[calc(var(--nav-h)+var(--safe-b)+20px)] pt-[calc(var(--safe-t)+12px)]">
         <header className="mb-4 flex items-center justify-between">
           <button type="button" onClick={() => navigate('home')} className="flex items-center gap-2">
-            <BrandMark className="h-9 w-9 shrink-0 rounded-[28%] shadow-[0_0_22px_-6px_rgba(167,139,250,0.8)]" />
+            <BrandMark className="h-9 w-9 shrink-0" />
             <span className="text-[18px] font-black leading-none tracking-tight text-white">싱픽</span>
           </button>
           <div className="flex items-center gap-1.5">
