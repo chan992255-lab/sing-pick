@@ -8,7 +8,19 @@ const HERO_EQ: [number, number][] = [
   [14, 0.16], [32, 0.44], [22, 0.08], [38, 0.32], [16, 0.56], [26, 0.2], [34, 0.02], [20, 0.48],
   [30, 0.26], [14, 0.4], [24, 0.1], [36, 0.54], [18, 0.34], [28, 0.14], [22, 0.5], [12, 0.28],
 ];
-const EQ_COLORS = ['#a3e635', '#f472b6', '#a78bfa', '#fb7185'];
+const EQ_STOPS: [number, number, number][] = [
+  [163, 230, 53], // 라임
+  [244, 114, 182], // 핑크
+  [167, 139, 250], // 바이올렛
+];
+
+/** 바 위치에 따라 라임 → 핑크 → 바이올렛으로 흐르는 색 */
+function eqColor(t: number) {
+  const seg = Math.min(EQ_STOPS.length - 2, Math.floor(t * (EQ_STOPS.length - 1)));
+  const local = t * (EQ_STOPS.length - 1) - seg;
+  const c = [0, 1, 2].map((i) => Math.round(EQ_STOPS[seg][i] + (EQ_STOPS[seg + 1][i] - EQ_STOPS[seg][i]) * local));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+}
 
 function VinylDisc() {
   return (
@@ -94,15 +106,15 @@ export function HeroStage({ onNavigate }: { onNavigate: (route: Route) => void }
         {/* 네온 이퀄라이저 — 무대 사운드 */}
         <div aria-hidden className="relative mt-4 flex h-10 items-end justify-between gap-[3px] [mask-image:linear-gradient(90deg,transparent,#000_7%,#000_93%,transparent)]">
           {HERO_EQ.map(([h, d], i) => {
-            const color = EQ_COLORS[i % EQ_COLORS.length];
+            const color = eqColor(i / (HERO_EQ.length - 1));
             return (
               <span
                 key={i}
                 className="hero-eq-bar w-full flex-1 rounded-full"
                 style={{
                   height: `${h}px`,
-                  background: `linear-gradient(180deg, ${color}, ${color}55)`,
-                  boxShadow: `0 0 10px ${color}99`,
+                  background: `linear-gradient(180deg, ${color}, ${color.replace('rgb', 'rgba').replace(')', ', 0.35)')})`,
+                  boxShadow: `0 0 10px ${color.replace('rgb', 'rgba').replace(')', ', 0.6)')}`,
                   animationDelay: `${d}s`,
                   animationDuration: `${1 + ((i * 7) % 5) * 0.12}s`,
                 }}
