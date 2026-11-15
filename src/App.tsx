@@ -92,10 +92,7 @@ export default function App() {
             <span className="grid h-9 w-9 place-items-center rounded-2xl bg-gradient-to-br from-neon-500 to-hot-500 text-[16px] font-black text-white shadow-glow">
               싱
             </span>
-            <span className="text-left">
-              <span className="block text-[17px] font-black leading-none tracking-tight text-white">싱픽</span>
-              <span className="block text-[10px] font-bold tracking-wide text-zinc-500">노래방 필수앱</span>
-            </span>
+            <span className="text-[18px] font-black leading-none tracking-tight text-white">싱픽</span>
           </button>
           <div className="flex items-center gap-1.5">
             {setlistSongs.length ? (

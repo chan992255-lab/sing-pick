@@ -217,7 +217,7 @@ export function Home({
             오늘은 <span className="text-lime-300">무슨 노래</span> 부를까?
           </h1>
           <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-300">
-            TJ·금영 곡번호부터 연령대별 인기차트, 랜덤 룰렛, 가사와 녹음까지 한 번에.
+            오늘 부를 곡, 싱픽이 골라 드릴게요.
           </p>
           <div className="mt-4 grid grid-cols-3 gap-2">
             <button type="button" onClick={() => onNavigate('search')} className="rounded-2xl border border-white/10 bg-white/10 p-3 text-left transition active:scale-[0.98]">
