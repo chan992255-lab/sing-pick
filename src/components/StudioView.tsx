@@ -25,6 +25,7 @@ import {
 import { saveRecording } from '../lib/recordings';
 import { formatDuration } from '../lib/format';
 import { LyricsBlock } from './LyricsBlock';
+import { SongPlayer } from './SongPlayer';
 
 function LevelMeter({ level }: { level: number }) {
   const bars = 24;
@@ -235,6 +236,8 @@ export function StudioView({
           <span>에코를 켜면 이어폰으로 듣는 게 좋아요. 스피커로 크게 틀면 하울링이 생길 수 있어요.</span>
         </div>
       </div>
+
+      {song ? <SongPlayer song={song} compact /> : null}
 
       {rec.result ? (
         <div className="panel p-4">

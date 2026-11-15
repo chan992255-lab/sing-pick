@@ -3,6 +3,7 @@ import type { Song } from '../data/songs';
 import { useStore } from '../lib/store';
 import { NumberBadge, SetlistButton, Sheet, SongMetaLine } from './ui';
 import { LyricsBlock } from './LyricsBlock';
+import { SongPlayer } from './SongPlayer';
 import { moodLabel } from '../lib/format';
 
 function KeyPad({ song }: { song: Song }) {
@@ -151,7 +152,13 @@ export function SongSheet({
         </button>
       )}
 
-      <LyricsBlock song={song} />
+      <div className="mt-3">
+        <SongPlayer song={song} />
+      </div>
+
+      <div className="mt-3">
+        <LyricsBlock song={song} />
+      </div>
     </Sheet>
   );
 }
