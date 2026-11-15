@@ -73,8 +73,18 @@ function mergeResults(groups, tjHits, query) {
   const push = (item) => {
     const key = `${norm(item.title)}::${norm(item.singer)}`;
     if (seen.has(key)) return;
-    // 제목이 같은데 가수 표기만 다른 중복도 걸러 낸다.
-    const near = out.find((o) => norm(o.title) === norm(item.title) && norm(o.singer).slice(0, 4) === norm(item.singer).slice(0, 4));
+    // 같은 곡인데 TJ·금영 표기가 달라 생긴 중복을 합친다:
+    //  · 제목이 같고 가수 앞부분이 비슷하거나
+    //  · 가수가 같고 한쪽 제목이 다른 쪽으로 시작하는 경우 (예: "천상연" / "천상연 (웹툰 …)")
+    const singerKey = (x) => norm(x).slice(0, 5);
+    const near = out.find((o) => {
+      if (singerKey(o.singer) !== singerKey(item.singer)) return false;
+      const a = norm(o.title);
+      const b = norm(item.title);
+      if (a === b) return true;
+      const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+      return shorter.length >= 2 && longer.startsWith(shorter);
+    });
     if (near) {
       near.tj = near.tj || item.tj;
       near.ky = near.ky || item.ky;
