@@ -10,13 +10,13 @@ import { SongRow, SectionHeader, NumberBadge } from './ui';
 type ChartTab = 'all' | 'teen' | 'twenty' | 'thirty' | 'forty' | 'fifty' | 'live';
 
 const AGE_TABS: { key: ChartTab; label: string; hint: string }[] = [
-  { key: 'all', label: '전체', hint: '세대 불문 국민 애창곡' },
-  { key: 'teen', label: '10대', hint: '요즘 아이돌·힙합' },
-  { key: 'twenty', label: '20대', hint: '감성 발라드·역주행' },
-  { key: 'thirty', label: '30대', hint: '2000년대 레전드' },
-  { key: 'forty', label: '40대', hint: '90년대 가요·록' },
-  { key: 'fifty', label: '+50', hint: '트로트·7080' },
-  { key: 'live', label: 'TJ 실시간', hint: 'TJ미디어 공식 차트' },
+  { key: 'live', label: 'TJ 노래방 인기차트', hint: 'TJ미디어 공식 HOT100 · 실시간 연동' },
+  { key: 'teen', label: '10대 TOP', hint: '요즘 아이돌·힙합·감성 발라드' },
+  { key: 'twenty', label: '20대 TOP', hint: '감성 발라드·역주행 명곡' },
+  { key: 'thirty', label: '30대 TOP', hint: '2000~2010년대 레전드' },
+  { key: 'forty', label: '40대 TOP', hint: '90년대 가요·록 발라드' },
+  { key: 'fifty', label: '50대+ TOP', hint: '트로트·7080 국민가요' },
+  { key: 'all', label: '싱픽 전체 TOP', hint: '세대 불문 국민 애창곡' },
 ];
 
 function matchLocal(title: string, singer: string): Song | undefined {
@@ -84,13 +84,17 @@ function ChartList({
     const shown = expanded ? rows : rows.slice(0, 10);
     return (
       <div>
-        <div className="mb-1 flex items-center gap-1.5 px-2 text-[11px] font-bold text-lime-300">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-lime-400" />
-          TJ미디어 공식 인기차트 · 실시간 연동
+        <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-hot-500/25 bg-hot-500/10 px-2.5 py-2">
+          <span className="flex items-center gap-1 rounded-full bg-hot-500 px-2 py-0.5 text-[10px] font-black tracking-wide text-white">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> LIVE
+          </span>
+          <span className="text-[11px] font-bold text-hot-200">
+            TJ미디어 공식 HOT100 · 노래방 인기차트 실시간 연동
+          </span>
         </div>
         {shown.map((hit) => {
           const local = matchLocal(hit.title, hit.singer);
-          const song: Song =
+          const base: Song =
             local ??
             {
               id: `tj-chart-${hit.tj}`,
@@ -104,6 +108,15 @@ function ChartList({
               vocal: 3,
               heat: 50,
             };
+          // TJ 차트의 최신 TJ 번호를 우선하고, 금영 번호는 내장 DB/서버 보강 결과를 쓴다.
+          const song: Song = {
+            ...base,
+            id: `tj-chart-${hit.tj}`,
+            title: hit.title,
+            singer: hit.singer,
+            tj: hit.tj,
+            ky: base.ky || hit.ky || '',
+          };
           return (
             <div key={`${hit.tj}-${hit.rank}`} onClick={() => onOpen(song)}>
               <SongRow song={song} rank={hit.rank} onOpen={onOpen} />
@@ -144,7 +157,7 @@ export function Home({
   onOpenSong: (song: Song) => void;
   onNavigate: (route: 'search' | 'roulette' | 'setlist' | 'library' | 'quiz') => void;
 }) {
-  const [tab, setTab] = useState<ChartTab>('all');
+  const [tab, setTab] = useState<ChartTab>('live');
   const { setlistSongs, favoriteSongs } = useStore();
 
   const moodPicks = useMemo(() => {

@@ -42,6 +42,8 @@ export interface ChartHit {
   title: string;
   singer: string;
   tj: string;
+  /** TJ 차트에는 금영 번호가 없어, 서버가 찾아 준 경우에만 채워진다 */
+  ky?: string;
 }
 
 /** TJ 공식 차트. 실패하면 null → 화면은 내장 큐레이션 차트로 폴백 */
