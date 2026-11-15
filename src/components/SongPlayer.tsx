@@ -13,12 +13,14 @@ export interface VideoResult {
 
 type Mode = 'mr' | 'original';
 
+export type { Mode as VideoMode };
+
 const MODES: { key: Mode; label: string; hint: string }[] = [
   { key: 'mr', label: '반주 MR', hint: '노래방 반주에 맞춰 연습' },
   { key: 'original', label: '원곡', hint: '원곡 들으며 가사 확인' },
 ];
 
-async function fetchVideo(song: Song, mode: Mode): Promise<VideoResult> {
+export async function fetchVideo(song: Song, mode: Mode): Promise<VideoResult> {
   const q = `${song.singer} ${song.title}`.trim();
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 9000);

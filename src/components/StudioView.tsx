@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   AlertTriangle,
   Check,
   Download,
   Headphones,
   Mic,
+  Music2,
   Pause,
   Play,
   Save,
@@ -28,8 +29,8 @@ import { scoreTake } from '../lib/score';
 import { useLyrics } from '../lib/lyrics';
 import { formatDuration } from '../lib/format';
 import { LyricsStage } from './LyricsStage';
+import { KaraokePlayer, type KaraokePlayerHandle } from './KaraokePlayer';
 import { ScoreCard } from './ScoreCard';
-import { SongPlayer } from './SongPlayer';
 import { Sheet } from './ui';
 
 function LevelMeter({ level }: { level: number }) {
@@ -82,6 +83,8 @@ export function StudioView({
   const [showSettings, setShowSettings] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
   const [cardOpen, setCardOpen] = useState(false);
+  const [mrPlaying, setMrPlaying] = useState(false);
+  const playerRef = useRef<KaraokePlayerHandle | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const { toast, addFavorite, favorites } = useStore();
@@ -115,6 +118,29 @@ export function StudioView({
       setCardOpen(true);
     }
   }, [rec.result]);
+
+  const handleMrPlaying = useCallback((playing: boolean) => setMrPlaying(playing), []);
+
+  // 녹음이 시작되면 반주를 처음부터 틀고, 녹음이 끝나면 멈춘다.
+  // 아이폰은 마이크가 켜지며 반주를 멈추므로, 끝나고도 위 고정 바의 '반주 켜기'로 바로 다시 틀 수 있다.
+  const prevRecState = useRef(rec.state);
+  useEffect(() => {
+    const prev = prevRecState.current;
+    prevRecState.current = rec.state;
+    if (rec.state === 'recording' && prev !== 'recording' && prev !== 'paused') {
+      playerRef.current?.restart();
+    }
+    // 일시정지하면 반주도 멈추고, 이어서 녹음하면 반주도 이어간다
+    if (rec.state === 'paused' && prev === 'recording') {
+      playerRef.current?.pause();
+    }
+    if (rec.state === 'recording' && prev === 'paused') {
+      playerRef.current?.play();
+    }
+    if (rec.state === 'idle' && (prev === 'recording' || prev === 'paused')) {
+      playerRef.current?.pause();
+    }
+  }, [rec.state]);
 
   const update = (patch: Partial<RecorderSettings>) => setSettings((prev) => ({ ...prev, ...patch }));
 
@@ -194,6 +220,18 @@ export function StudioView({
             </div>
             <button
               type="button"
+              onClick={() => playerRef.current?.toggle()}
+              aria-label={mrPlaying ? '반주 멈춤' : '반주 켜기'}
+              className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-2 text-[11px] font-black transition ${
+                mrPlaying
+                  ? 'border border-white/10 bg-white/5 text-zinc-300'
+                  : 'animate-pulse bg-amber-400 text-ink-950'
+              }`}
+            >
+              <Music2 size={13} /> {mrPlaying ? '반주' : '반주 켜기'}
+            </button>
+            <button
+              type="button"
               onClick={rec.state === 'paused' ? rec.resume : rec.pause}
               aria-label={rec.state === 'paused' ? '이어서 녹음' : '잠깐 멈춤'}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-white"
@@ -207,6 +245,8 @@ export function StudioView({
         </div>
       ) : null}
 
+      {/* 녹음 중에는 큰 마이크 패널을 접어 반주와 가사가 한 화면에 들어오게 한다 */}
+      {!live ? (
       <div className="panel relative overflow-hidden p-5">
         <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-neon-500/20 blur-3xl" />
         <div className="relative">
@@ -224,6 +264,8 @@ export function StudioView({
               type="button"
               onClick={() => {
                 if (rec.state === 'idle') {
+                  // 누른 그 순간에 반주 재생 권한을 열어 둔다 (iOS 자동재생 차단 방지)
+                  playerRef.current?.prime();
                   void rec.start();
                   setSaveState('idle');
                   setCardOpen(false);
@@ -291,6 +333,11 @@ export function StudioView({
           <span>에코를 켜면 이어폰으로 듣는 게 좋아요. 스피커로 크게 틀면 하울링이 생길 수 있어요.</span>
         </div>
       </div>
+      ) : null}
+
+      {song ? (
+        <KaraokePlayer ref={playerRef} song={song} live={live} onPlayingChange={handleMrPlaying} />
+      ) : null}
 
       {song ? (
         <LyricsStage song={song} elapsed={rec.elapsed} recording={rec.state === 'recording'} />
@@ -303,8 +350,6 @@ export function StudioView({
           </a>
         </section>
       )}
-
-      {song ? <SongPlayer song={song} compact /> : null}
 
       {rec.result ? (
         <div className="panel p-4">

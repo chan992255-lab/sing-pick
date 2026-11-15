@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { ExternalLink, Loader2, Play, RotateCcw, Square } from 'lucide-react';
+import { ExternalLink, Loader2, Play, RefreshCw, RotateCcw, Square } from 'lucide-react';
 import type { Song } from '../data/songs';
 import { lineIndexAt, useLyrics } from '../lib/lyrics';
 import { formatDuration } from '../lib/format';
@@ -21,7 +21,7 @@ export const LyricsStage = memo(function LyricsStage({
   /** 녹음 중인지 */
   recording: boolean;
 }) {
-  const { loading, lyrics, lines, synced, songDuration, failed } = useLyrics(song);
+  const { loading, lyrics, lines, synced, songDuration, failed, reload } = useLyrics(song);
   const [offset, setOffset] = useState(0);
   const [preview, setPreview] = useState(false);
   const [previewTime, setPreviewTime] = useState(0);
@@ -136,9 +136,14 @@ export const LyricsStage = memo(function LyricsStage({
           <p className="muted mt-1">
             공개 가사 DB(LRCLIB)에 이 곡이 아직 없거나 표기가 달라 못 찾았어요. 가사를 지어내지 않고 그대로 알려드릴게요.
           </p>
-          <a href={naver} target="_blank" rel="noreferrer" className="btn-soft mt-3 w-full text-[12.5px]">
-            <ExternalLink size={14} /> 네이버에서 가사 바로 검색
-          </a>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" onClick={reload} className="btn-soft text-[12.5px]">
+              <RefreshCw size={13} /> 다시 찾기
+            </button>
+            <a href={naver} target="_blank" rel="noreferrer" className="btn-soft text-[12.5px]">
+              <ExternalLink size={13} /> 네이버 가사 검색
+            </a>
+          </div>
         </div>
       ) : synced ? (
         <>
