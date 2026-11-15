@@ -10,7 +10,7 @@ import { SongRow, SectionHeader, NumberBadge } from './ui';
 type ChartTab = 'all' | 'teen' | 'twenty' | 'thirty' | 'forty' | 'fifty' | 'live';
 
 const AGE_TABS: { key: ChartTab; label: string; hint: string }[] = [
-  { key: 'live', label: 'TJ 많이 부른 순위 TOP 100', hint: 'TJ미디어 공식 집계 · 가장 많이 불린 곡' },
+  { key: 'live', label: 'TJ TOP 100', hint: 'TJ미디어 공식 집계 · 가장 많이 불린 순위' },
   { key: 'teen', label: '10대 TOP', hint: '요즘 아이돌·힙합·감성 발라드' },
   { key: 'twenty', label: '20대 TOP', hint: '감성 발라드·역주행 명곡' },
   { key: 'thirty', label: '30대 TOP', hint: '2000~2010년대 레전드' },
