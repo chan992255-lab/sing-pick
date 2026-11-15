@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /mobile-preview.html
 
-Sitemap: https://sing-pick-ochre.vercel.app/sitemap.xml
+Sitemap: https://sing-pick.vercel.app/sitemap.xml
