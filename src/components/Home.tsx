@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ChevronDown, Flame, Loader2, Mic, RefreshCw, Search, Shuffle, Sparkles, Trophy } from 'lucide-react';
+import { ArrowRight, ChevronDown, Flame, Loader2, Mic, RefreshCw } from 'lucide-react';
+import { HeroStage } from './HeroStage';
 import { SONGS, SONG_BY_ID, type Song } from '../data/songs';
 import { AGE_CHART_IDS } from '../data/charts';
 import { useStore } from '../lib/store';
@@ -255,37 +256,7 @@ export function Home({
 
   return (
     <div className="space-y-6 pb-4">
-      <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-neon-600/30 via-ink-850 to-ink-900 p-5">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-hot-500/20 blur-3xl" />
-        <div className="relative">
-          <p className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[10.5px] font-black tracking-wide text-white/90">
-            <Sparkles size={11} /> 대한민국 노래방 필수앱
-          </p>
-          <h1 className="mt-3 text-[26px] font-black leading-tight tracking-tight text-white text-balance">
-            오늘은 <span className="text-lime-300">무슨 노래</span> 부를까?
-          </h1>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-300">
-            오늘 부를 곡, 싱픽이 골라 드릴게요.
-          </p>
-          <div className="mt-4 grid grid-cols-3 gap-2">
-            <button type="button" onClick={() => onNavigate('search')} className="rounded-2xl border border-white/10 bg-white/10 p-3 text-left transition active:scale-[0.98]">
-              <Search size={17} className="text-lime-300" />
-              <p className="mt-2 text-[12px] font-bold text-white">전체 곡 검색</p>
-              <p className="text-[10.5px] text-zinc-400">제목·가수·번호</p>
-            </button>
-            <button type="button" onClick={() => onNavigate('roulette')} className="rounded-2xl border border-white/10 bg-white/10 p-3 text-left transition active:scale-[0.98]">
-              <Shuffle size={17} className="text-neon-300" />
-              <p className="mt-2 text-[12px] font-bold text-white">랜덤 룰렛</p>
-              <p className="text-[10.5px] text-zinc-400">고민 끝</p>
-            </button>
-            <button type="button" onClick={() => onNavigate('quiz')} className="rounded-2xl border border-white/10 bg-white/10 p-3 text-left transition active:scale-[0.98]">
-              <Trophy size={17} className="text-hot-400" />
-              <p className="mt-2 text-[12px] font-bold text-white">18번 찾기</p>
-              <p className="text-[10.5px] text-zinc-400">7문항 테스트</p>
-            </button>
-          </div>
-        </div>
-      </section>
+      <HeroStage onNavigate={onNavigate} />
 
       <section>
         <SectionHeader
