@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Check,
@@ -11,6 +11,7 @@ import {
   Sliders,
   Square,
   Trash2,
+  Trophy,
   Volume2,
 } from 'lucide-react';
 import type { Song } from '../data/songs';
@@ -23,9 +24,13 @@ import {
   type RecorderSettings,
 } from '../lib/recorder';
 import { saveRecording } from '../lib/recordings';
+import { scoreTake } from '../lib/score';
+import { useLyrics } from '../lib/lyrics';
 import { formatDuration } from '../lib/format';
-import { LyricsBlock } from './LyricsBlock';
+import { LyricsStage } from './LyricsStage';
+import { ScoreCard } from './ScoreCard';
 import { SongPlayer } from './SongPlayer';
+import { Sheet } from './ui';
 
 function LevelMeter({ level }: { level: number }) {
   const bars = 24;
@@ -75,12 +80,13 @@ export function StudioView({
   const [settings, setSettings] = useState<RecorderSettings>(() => loadRecorderSettings());
   const [title, setTitle] = useState(song?.title ?? '자유 녹음');
   const [showSettings, setShowSettings] = useState(false);
-  const [showLyrics, setShowLyrics] = useState(Boolean(song));
   const [saveState, setSaveState] = useState<'idle' | 'saved'>('idle');
+  const [cardOpen, setCardOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const { toast, addFavorite, favorites } = useStore();
   const rec = useRecorder(settings);
+  const lyrics = useLyrics(song);
 
   useEffect(() => {
     saveRecorderSettings(settings);
@@ -96,6 +102,19 @@ export function StudioView({
       if (audioUrl) URL.revokeObjectURL(audioUrl);
     };
   }, [audioUrl]);
+
+  // 녹음이 끝나면 마이크 분석 프레임으로 10개 항목 100점 점수표를 만든다
+  const report = useMemo(
+    () => (rec.result ? scoreTake(rec.result.frames, rec.result.duration, { songDuration: lyrics.songDuration }) : null),
+    [rec.result, lyrics.songDuration],
+  );
+
+  useEffect(() => {
+    if (rec.result) {
+      setSaveState('idle');
+      setCardOpen(true);
+    }
+  }, [rec.result]);
 
   const update = (patch: Partial<RecorderSettings>) => setSettings((prev) => ({ ...prev, ...patch }));
 
@@ -129,6 +148,12 @@ export function StudioView({
     a.click();
   };
 
+  const retry = () => {
+    setCardOpen(false);
+    rec.reset();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const errorText =
     rec.error === 'unsupported'
       ? '이 브라우저는 녹음을 지원하지 않아요. 최신 iOS 사파리·크롬·엣지에서 열어 주세요.'
@@ -139,6 +164,8 @@ export function StudioView({
           : rec.error
             ? '녹음을 시작하지 못했어요. 잠시 뒤 다시 시도해 주세요.'
             : null;
+
+  const live = rec.state === 'recording' || rec.state === 'paused';
 
   return (
     <div className="space-y-4 pb-4">
@@ -151,14 +178,41 @@ export function StudioView({
         </button>
       </div>
 
+      {/* 녹음 중에는 가사를 보면서도 바로 멈출 수 있게 위에 붙여 둔다 */}
+      {live ? (
+        <div className="sticky top-0 z-30 -mx-4 border-b border-white/10 bg-ink-950/90 px-4 py-2 backdrop-blur-xl">
+          <div className="flex items-center gap-2.5">
+            <span className="flex shrink-0 items-center gap-1 text-[10px] font-black tracking-wide text-hot-400">
+              <span className={`h-1.5 w-1.5 rounded-full bg-hot-500 ${rec.state === 'recording' ? 'animate-pulse' : ''}`} />
+              {rec.state === 'recording' ? 'LIVE' : 'PAUSE'}
+            </span>
+            <span className="shrink-0 font-mono text-[19px] font-black tabular-nums leading-none text-white">
+              {formatDuration(rec.elapsed)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <LevelMeter level={rec.level} />
+            </div>
+            <button
+              type="button"
+              onClick={rec.state === 'paused' ? rec.resume : rec.pause}
+              aria-label={rec.state === 'paused' ? '이어서 녹음' : '잠깐 멈춤'}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 bg-white/5 text-white"
+            >
+              {rec.state === 'paused' ? <Play size={15} /> : <Pause size={15} />}
+            </button>
+            <button type="button" onClick={rec.stop} className="btn shrink-0 bg-hot-500 px-3 py-2 text-[12px] text-white">
+              <Square size={12} /> 끝내기
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="panel relative overflow-hidden p-5">
         <div className="absolute -left-8 -top-8 h-32 w-32 rounded-full bg-neon-500/20 blur-3xl" />
         <div className="relative">
           <p className="text-[11px] font-black tracking-wide text-neon-300">녹음 스튜디오</p>
           <h1 className="mt-1 truncate text-[22px] font-black text-white">{song ? song.title : '자유 녹음'}</h1>
-          <p className="text-[12.5px] text-zinc-400">
-            {song ? song.singer : '아무 노래나 부르고 저장해 두세요'}
-          </p>
+          <p className="text-[12.5px] text-zinc-400">{song ? song.singer : '아무 노래나 부르고 저장해 두세요'}</p>
         </div>
 
         <div className="mt-5 flex flex-col items-center">
@@ -172,6 +226,7 @@ export function StudioView({
                 if (rec.state === 'idle') {
                   void rec.start();
                   setSaveState('idle');
+                  setCardOpen(false);
                 } else if (rec.state === 'recording' || rec.state === 'countdown') {
                   rec.stop();
                 } else if (rec.state === 'paused') {
@@ -195,17 +250,17 @@ export function StudioView({
             ) : null}
           </div>
 
-          <p className="mt-3 font-mono text-[26px] font-black tabular-nums text-white">
-            {formatDuration(rec.elapsed)}
-          </p>
+          <p className="mt-3 font-mono text-[26px] font-black tabular-nums text-white">{formatDuration(rec.elapsed)}</p>
           <p className="text-[11.5px] text-zinc-400">
             {rec.state === 'idle'
-              ? '마이크 버튼을 누르면 녹음이 시작돼요'
+              ? song
+                ? '마이크 버튼을 누르면 가사가 따라오며 녹음이 시작돼요'
+                : '마이크 버튼을 누르면 녹음이 시작돼요'
               : rec.state === 'countdown'
                 ? '잠시 후 시작합니다'
                 : rec.state === 'paused'
                   ? '일시정지됨'
-                  : '녹음 중… 버튼을 누르면 멈춰요'}
+                  : '녹음 중… 끝나면 점수표가 나와요'}
           </p>
 
           <div className="mt-3 w-full max-w-[280px]">
@@ -237,15 +292,36 @@ export function StudioView({
         </div>
       </div>
 
+      {song ? (
+        <LyricsStage song={song} elapsed={rec.elapsed} recording={rec.state === 'recording'} />
+      ) : (
+        <section className="panel p-4 text-center">
+          <p className="text-[12.5px] font-bold text-zinc-200">곡을 골라 들어오면 노래방처럼 가사가 떠요</p>
+          <p className="muted mt-1">가사가 흘러가면서 지금 부를 소절을 크게 비춰 줘요.</p>
+          <a href="#/search" className="btn-soft mt-2 text-[12px]">
+            곡 검색하기
+          </a>
+        </section>
+      )}
+
       {song ? <SongPlayer song={song} compact /> : null}
 
       {rec.result ? (
         <div className="panel p-4">
-          <p className="text-[13px] font-extrabold text-white">방금 녹음</p>
-          <p className="muted mt-0.5">
-            {formatDuration(rec.result.duration)} · {(rec.result.blob.size / 1024).toFixed(0)}KB ·{' '}
-            {rec.result.mime.includes('mp4') ? 'M4A' : 'WebM'}
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[13px] font-extrabold text-white">방금 녹음</p>
+              <p className="muted mt-0.5">
+                {formatDuration(rec.result.duration)} · {(rec.result.blob.size / 1024).toFixed(0)}KB ·{' '}
+                {rec.result.mime.includes('mp4') ? 'M4A' : 'WebM'}
+              </p>
+            </div>
+            {report ? (
+              <button type="button" onClick={() => setCardOpen(true)} className="btn-lime shrink-0 px-3 py-2 text-[12px]">
+                <Trophy size={14} /> {report.total}점 점수표
+              </button>
+            ) : null}
+          </div>
           <audio
             ref={audioRef}
             src={audioUrl}
@@ -318,12 +394,7 @@ export function StudioView({
             </div>
           </div>
 
-          <Toggle
-            on={settings.echo}
-            onChange={(v) => update({ echo: v })}
-            label="노래방 에코"
-            desc="Delay + 피드백으로 노래방 느낌을 더해요"
-          />
+          <Toggle on={settings.echo} onChange={(v) => update({ echo: v })} label="노래방 에코" desc="Delay + 피드백으로 노래방 느낌을 더해요" />
           <div className={settings.echo ? 'py-1' : 'pointer-events-none py-1 opacity-40'}>
             <div className="mb-1 flex items-center justify-between">
               <span className="text-[12px] font-bold text-zinc-300">에코 강도</span>
@@ -382,26 +453,44 @@ export function StudioView({
       ) : null}
 
       {song ? (
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => setShowLyrics((v) => !v)}
-              className="text-[12px] font-bold text-zinc-300"
-            >
-              {showLyrics ? '가사 접기' : '녹음하면서 가사 보기'}
-            </button>
-            <button
-              type="button"
-              onClick={() => (favorites[song.id] ? onOpenSong(song) : addFavorite(song))}
-              className="text-[11.5px] font-bold text-zinc-500 hover:text-white"
-            >
-              {favorites[song.id] ? '곡 상세 보기' : '애창곡 담기'}
-            </button>
-          </div>
-          {showLyrics ? <LyricsBlock song={song} compact /> : null}
+        <div className="flex items-center justify-between px-1">
+          <button
+            type="button"
+            onClick={() => (favorites[song.id] ? onOpenSong(song) : addFavorite(song))}
+            className="text-[11.5px] font-bold text-zinc-500 hover:text-white"
+          >
+            {favorites[song.id] ? '곡 상세 보기' : '애창곡 담기'}
+          </button>
+          <button type="button" onClick={() => (window.location.hash = '/search')} className="text-[11.5px] font-bold text-zinc-500 hover:text-white">
+            다른 곡 부르기 →
+          </button>
         </div>
       ) : null}
+
+      <Sheet
+        open={cardOpen && Boolean(report)}
+        onClose={() => setCardOpen(false)}
+        title={
+          <div>
+            <p className="text-[11px] font-black tracking-wide text-lime-300">노래방 점수</p>
+            <h2 className="truncate text-[19px] font-black text-white">{song ? song.title : title}</h2>
+            <p className="text-[11.5px] text-zinc-400">{song ? song.singer : '자유 녹음'}</p>
+          </div>
+        }
+      >
+        {report ? (
+          <ScoreCard
+            report={report}
+            audioUrl={audioUrl}
+            title={title.trim() || '자유 녹음'}
+            saved={saveState === 'saved'}
+            onClose={() => setCardOpen(false)}
+            onRetry={retry}
+            onSave={save}
+            onDownload={download}
+          />
+        ) : null}
+      </Sheet>
     </div>
   );
 }

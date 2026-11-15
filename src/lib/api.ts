@@ -53,19 +53,29 @@ export async function fetchChart(kind: ChartKind): Promise<ChartHit[] | null> {
   return data.songs;
 }
 
+export interface LyricLine {
+  /** 곡 시작 기준 시각(초) */
+  t: number;
+  text: string;
+}
+
 export interface LyricsResult {
   lyrics: string;
   synced: boolean;
   source: 'lrclib' | 'none';
   track?: string;
   artist?: string;
+  /** 타임코드가 있는 소절 목록 (있으면 노래방처럼 따라가며 하이라이트) */
+  syncedLines?: LyricLine[];
+  /** LRCLIB 에 등록된 곡 길이(초) */
+  duration?: number | null;
 }
 
 export async function fetchLyrics(song: { title: string; singer: string }): Promise<LyricsResult> {
   const url = `/api/lyrics?title=${encodeURIComponent(song.title)}&artist=${encodeURIComponent(song.singer)}`;
   const data = await getJson<LyricsResult>(url, 9000);
-  if (!data || !data.lyrics) return { lyrics: '', synced: false, source: 'none' };
-  return data;
+  if (!data || !data.lyrics) return { lyrics: '', synced: false, syncedLines: [], source: 'none' };
+  return { ...data, syncedLines: Array.isArray(data.syncedLines) ? data.syncedLines : [] };
 }
 
 /** 실시간 검색 결과를 앱 내부 Song 형태로 바꾼다. */

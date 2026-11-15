@@ -31,10 +31,35 @@ function stripTimestamps(text) {
   if (!text) return '';
   return text
     .split('\n')
-    .map((line) => line.replace(/^\s*\[\d{1,2}:\d{2}(?:[.:]\d{1,3})?\]\s*/g, ''))
+    .map((line) => line.replace(/\[[^\]]*\]/g, '').replace(/<[^>]*>/g, '').trimEnd())
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
+}
+
+/**
+ * LRC 싱크 가사를 [{ t: 시작초, text }] 로 바꾼다.
+ * 줄 앞 타임코드는 물론 단어별 타임코드(<00:12.34>)가 섞인 형식도 읽는다.
+ * 빈 줄(간주)은 화면 흐름을 위해 버린다.
+ */
+function parseSyncedLines(text) {
+  if (!text) return [];
+  const stamp = /[\[<](\d{1,2}):(\d{2})(?:[.:](\d{1,3}))?[\]>]/g;
+  const out = [];
+  for (const raw of String(text).split('\n')) {
+    const stamps = [...raw.matchAll(stamp)];
+    if (!stamps.length) continue;
+    const body = raw.replace(/\[[^\]]*\]/g, '').replace(/<[^>]*>/g, '').trim();
+    if (!body) continue;
+    const first = stamps[0];
+    const min = Number(first[1]);
+    const sec = Number(first[2]);
+    const frac = first[3] ? Number(`0.${first[3]}`) : 0;
+    const t = Math.max(0, min * 60 + sec + frac);
+    out.push({ t: Math.round(t * 100) / 100, text: body });
+  }
+  out.sort((a, b) => a.t - b.t);
+  return out.slice(0, 400);
 }
 
 function pickBest(rows, wantArtist) {
@@ -51,6 +76,12 @@ function pickBest(rows, wantArtist) {
       if (norm(r.artistName) === artist) score += 5;
       else if (norm(r.artistName).includes(artist) || artist.includes(norm(r.artistName))) score += 3;
       if (r.plainLyrics) score += 1;
+      // 녹음 화면에서 소절 하이라이트를 하려면 타임코드가 있는 쪽이 낫다
+      if (r.syncedLyrics) {
+        score += 2;
+        // 소절이 촘촘한(가사가 더 많이 실린) 버전을 살짝 우대
+        score += Math.min(2, (r.syncedLyrics.match(/\[/g)?.length ?? 0) / 30);
+      }
       if (!r.instrumental) score += 1;
       return { row: r, score };
     })
@@ -66,7 +97,7 @@ export default async function handler(req, res) {
   res.setHeader('cache-control', 'public, s-maxage=86400, stale-while-revalidate=604800');
 
   if (!title) {
-    res.status(200).json({ lyrics: '', synced: false, source: 'none' });
+    res.status(200).json({ lyrics: '', synced: false, syncedLines: [], source: 'none' });
     return;
   }
 
@@ -92,15 +123,18 @@ export default async function handler(req, res) {
   }
 
   const text = best ? stripTimestamps(best.plainLyrics || best.syncedLyrics) : '';
+  const syncedLines = best ? parseSyncedLines(best.syncedLyrics) : [];
   const payload = text
     ? {
         lyrics: text,
-        synced: Boolean(best?.syncedLyrics),
+        synced: syncedLines.length > 1,
+        syncedLines,
+        duration: typeof best?.duration === 'number' ? best.duration : null,
         source: 'lrclib',
         track: best?.trackName ?? title,
         artist: best?.artistName ?? artist,
       }
-    : { lyrics: '', synced: false, source: 'none' };
+    : { lyrics: '', synced: false, syncedLines: [], source: 'none' };
 
   cache.set(key, { at: Date.now(), payload });
   if (cache.size > 500) {

@@ -21,7 +21,9 @@
 | 18번 찾기 | 3문항(목 상태·분위기·동행)으로 오늘의 노래 3곡 추천 |
 | 노래 듣기 | 곡 상세·녹음 스튜디오에서 **반주(MR)/원곡** 유튜브 영상을 앱 안에서 바로 재생(`api/youtube`). 임베드 제한 시 '유튜브에서 열기'·'Apple Music 검색' 링크 제공 |
 | 가사 | 공개 가사 DB [LRCLIB](https://lrclib.net) 프록시(`api/lyrics`). 없으면 "등록된 가사를 찾지 못했어요" + 네이버 가사 검색 버튼 (가사를 지어내지 않음) |
-| 녹음 스튜디오 | MediaRecorder + Web Audio API. 타이머·입력 레벨 미터, 카운트다운(끔/3/5초), 노래방 에코(Delay+피드백), 입력 게인, 음질(96/192kbps), IndexedDB 저장·다시 듣기·다운로드, 녹음 중 가사 보기 |
+| 녹음 스튜디오 | MediaRecorder + Web Audio API. 타이머·입력 레벨 미터, 카운트다운(끔/3/5초), 노래방 에코(Delay+피드백), 입력 게인, 음질(96/192kbps), IndexedDB 저장·다시 듣기·다운로드 |
+| 노래방 가사 | 녹음 중 화면에 **싱크 가사**(LRCLIB 타임코드)를 크게 띄우고, 지금 부를 소절을 하이라이트·자동 스크롤. 싱크가 밀리면 ±1초 조절, 녹음 없이 흘려 보는 '미리보기'. 타임코드가 없는 곡은 읽기 좋은 큰 가사로, 가사가 없을 때만 검색 링크 |
+| 노래방 점수 | 녹음이 끝나면 마이크 신호 분석(음량·음정 흔들림·발성 구간·음색)으로 **10개 항목 × 10점 = 100점 만점** 점수표와 등급·한줄평을 모달로 표시. 항목별 미니 프로그레스 바 + 근거 한 줄, 같은 녹음은 항상 같은 점수 (`lib/score.ts`, `node scripts/test-score.mjs` 로 검증) |
 | PWA | 홈 화면 설치(manifest·아이콘·서비스 워커), Open Graph/검색 메타태그 |
 
 ## 데이터 출처
@@ -43,6 +45,7 @@ npm run build     # tsc --noEmit && vite build
 npm run preview   # 빌드 결과 미리보기
 npm run songs     # 내장 곡 DB 재생성 (네트워크 필요)
 node scripts/test-api.mjs   # 서버리스 함수 로컬 호출 테스트
+node scripts/test-score.mjs # 노래방 채점 엔진 합성 입력 검사
 ```
 
 `api/*.js` 는 Vercel Node 함수입니다. 로컬에서 API까지 함께 보고 싶으면 `vercel dev` 를 쓰세요.
