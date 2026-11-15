@@ -96,7 +96,7 @@ export function StudioView({
     setTitle(song?.title ?? '자유 녹음');
   }, [song?.id, song?.title]);
 
-  const audioUrl = rec.result ? URL.createObjectURL(rec.result.blob) : '';
+  const audioUrl = useMemo(() => (rec.result ? URL.createObjectURL(rec.result.blob) : ''), [rec.result]);
   useEffect(() => {
     return () => {
       if (audioUrl) URL.revokeObjectURL(audioUrl);

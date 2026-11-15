@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { ExternalLink, Loader2, Play, RotateCcw, Square } from 'lucide-react';
 import type { Song } from '../data/songs';
 import { lineIndexAt, useLyrics } from '../lib/lyrics';
@@ -10,7 +10,7 @@ import { formatDuration } from '../lib/format';
  * - 타임코드가 없으면 읽기 좋은 큰 가사로 보여 주고, 가사가 없을 때만 검색 링크를 준다.
  * - '미리보기'를 누르면 녹음 없이도 하이라이트가 흘러가서 연습·확인용으로 쓸 수 있다.
  */
-export function LyricsStage({
+export const LyricsStage = memo(function LyricsStage({
   song,
   elapsed,
   recording,
@@ -189,4 +189,4 @@ export function LyricsStage({
       )}
     </section>
   );
-}
+});
