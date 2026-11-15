@@ -75,6 +75,50 @@ export async function searchTj(query, { strType = 0, limit = 20 } = {}) {
 }
 
 /**
+ * TJ미디어 공식 "많이 부른 순위 TOP 100" (/legacy/api/topAndHot100, chartType=TOP)
+ * @returns {Promise<Array<{rank:number,tj:string,title:string,singer:string}>>}
+ */
+export async function fetchTjTop100({ months = 1 } = {}) {
+  const end = new Date();
+  const start = new Date(end.getTime() - months * 30 * 24 * 60 * 60 * 1000);
+  const fmt = (d) => d.toISOString().slice(0, 10);
+  const body = new URLSearchParams({
+    chartType: 'TOP',
+    searchStartDate: fmt(start),
+    searchEndDate: fmt(end),
+    strType: '1',
+  });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 9000);
+  try {
+    const res = await fetch('https://www.tjmedia.com/legacy/api/topAndHot100', {
+      method: 'POST',
+      headers: {
+        'user-agent': UA,
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'x-requested-with': 'XMLHttpRequest',
+        accept: 'application/json, text/javascript, */*; q=0.01',
+      },
+      body,
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const items = json?.resultData?.items ?? [];
+    return items
+      .map((it) => ({
+        rank: Number(it.rank) || 0,
+        tj: String(it.pro ?? ''),
+        title: String(it.indexTitle ?? '').trim(),
+        singer: String(it.indexSong ?? '').trim(),
+      }))
+      .filter((x) => x.title && x.tj);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * TJ 공식 차트 (hot100 / 올해 인기곡). 차트 페이지는 서버가 HTML로 그려 준다.
  * @param {'hot100'|'hit_song'} type
  */

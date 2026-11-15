@@ -3,7 +3,7 @@
 // TJ 차트 페이지는 서버가 HTML 로 그려 주기 때문에, 이 함수가 파싱해 JSON 으로 내려준다.
 // 차트를 못 가져오면 songs: [] 로 답하고, 앱 화면은 내장 큐레이션 차트로 폴백한다.
 
-import { fetchTjChart } from './_lib/tj.js';
+import { fetchTjChart, fetchTjTop100 } from './_lib/tj.js';
 
 const CACHE_TTL = 1000 * 60 * 5;
 const cache = new Map();
@@ -30,13 +30,13 @@ const norm = (s) =>
     .replace(/[\s.'"`·,:;!?~\-_&+]/g, '');
 
 /** TJ 차트에는 TJ 번호만 있다. 같은 곡의 금영 번호를 공개 노래방 DB에서 찾아 붙여 준다. */
-async function enrichKy(songs, limit = 12) {
+async function enrichKy(songs, limit = 10) {
   const head = songs.slice(0, limit);
   await Promise.all(
     head.map(async (song) => {
       try {
         const ctrl = new AbortController();
-        const timer = setTimeout(() => ctrl.abort(), 2200);
+        const timer = setTimeout(() => ctrl.abort(), 1600);
         const res = await fetch(`https://api.manana.kr/karaoke/song/${encodeURIComponent(song.title.replace(/\s+/g, ''))}.json`, {
           headers: { accept: 'application/json' },
           signal: ctrl.signal,
@@ -64,7 +64,8 @@ async function enrichKy(songs, limit = 12) {
 }
 
 export default async function handler(req, res) {
-  const type = req.query?.type === 'hit_song' ? 'hit_song' : 'hot100';
+  const raw = String(req.query?.type ?? 'top100');
+  const type = ['top100', 'hot100', 'hit_song'].includes(raw) ? raw : 'top100';
   res.setHeader('content-type', 'application/json; charset=utf-8');
   res.setHeader('cache-control', 'public, s-maxage=300, stale-while-revalidate=900');
 
@@ -75,7 +76,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const songs = await fetchTjChart(type);
+    const songs = type === 'top100' ? await fetchTjTop100() : await fetchTjChart(type);
     await enrichKy(songs);
     const payload = {
       type,

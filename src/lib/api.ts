@@ -35,7 +35,7 @@ export async function searchLive(query: string): Promise<LiveHit[] | null> {
   return data.results.filter((r) => r.title);
 }
 
-export type ChartKind = 'hot100' | 'hit_song';
+export type ChartKind = 'top100' | 'hot100' | 'hit_song';
 
 export interface ChartHit {
   rank: number;

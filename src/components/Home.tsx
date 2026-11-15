@@ -10,7 +10,7 @@ import { SongRow, SectionHeader, NumberBadge } from './ui';
 type ChartTab = 'all' | 'teen' | 'twenty' | 'thirty' | 'forty' | 'fifty' | 'live';
 
 const AGE_TABS: { key: ChartTab; label: string; hint: string }[] = [
-  { key: 'live', label: 'TJ 노래방 인기차트', hint: '지금 노래방에서 가장 많이 불리는 곡' },
+  { key: 'live', label: 'TJ 많이 부른 순위 TOP 100', hint: 'TJ미디어 공식 집계 · 가장 많이 불린 곡' },
   { key: 'teen', label: '10대 TOP', hint: '요즘 아이돌·힙합·감성 발라드' },
   { key: 'twenty', label: '20대 TOP', hint: '감성 발라드·역주행 명곡' },
   { key: 'thirty', label: '30대 TOP', hint: '2000~2010년대 레전드' },
@@ -46,7 +46,7 @@ function ChartList({
     let alive = true;
     setLoading(true);
     setFailed(false);
-    fetchChart('hot100')
+    fetchChart('top100')
       .then((songs) => {
         if (!alive) return;
         if (songs?.length) setLive(songs);
@@ -81,7 +81,7 @@ function ChartList({
         </div>
       );
     }
-    const shown = expanded ? rows : rows.slice(0, 10);
+    const shown = expanded ? rows : rows.slice(0, 20);
     return (
       <div>
         <div className="mb-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-hot-500/25 bg-hot-500/10 px-2.5 py-2">
@@ -89,7 +89,7 @@ function ChartList({
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> LIVE
           </span>
           <span className="text-[11px] font-bold text-hot-200">
-            TJ미디어 공식 HOT100 · 노래방 인기차트 실시간 연동
+            TJ 많이 부른 순위 TOP 100 · 실시간 연동
           </span>
         </div>
         {shown.map((hit) => {
@@ -123,7 +123,7 @@ function ChartList({
             </div>
           );
         })}
-        {rows.length > 10 ? (
+        {rows.length > 20 ? (
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
@@ -141,7 +141,7 @@ function ChartList({
   return (
     <div>
       <p className="mb-1 px-2 text-[11px] text-zinc-500">
-        싱픽 연령대별 큐레이션 · 곡번호는 TJ·금영 실제 DB 기준
+        싱픽 연령대별 큐레이션 · TJ 노래방 곡번호 기준
       </p>
       {songs.map((song, i) => (
         <SongRow key={song.id} song={song} rank={i + 1} onOpen={onOpen} />
