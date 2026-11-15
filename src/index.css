@@ -1,0 +1,152 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --nav-h: 66px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: env(safe-area-inset-top, 0px);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    background-color: #08060f;
+  }
+
+  body {
+    @apply bg-ink-950 font-sans text-zinc-100 antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+
+  ::selection {
+    @apply bg-neon-500/40 text-white;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(150, 140, 200, 0.35) transparent;
+  }
+
+  input,
+  textarea,
+  button,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .app-bg {
+    background:
+      radial-gradient(900px 420px at 12% -8%, rgba(139, 92, 246, 0.28), transparent 60%),
+      radial-gradient(700px 360px at 92% 4%, rgba(244, 63, 94, 0.16), transparent 62%),
+      radial-gradient(600px 500px at 50% 108%, rgba(163, 230, 53, 0.1), transparent 65%),
+      #08060f;
+  }
+
+  .panel {
+    @apply rounded-3xl border border-white/10 bg-white/[0.045] shadow-card backdrop-blur-sm;
+  }
+
+  .panel-strong {
+    @apply rounded-3xl border border-white/10 bg-ink-850/80 shadow-card;
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply btn bg-gradient-to-r from-neon-500 to-neon-600 text-white shadow-[0_10px_30px_-12px_rgba(139,92,246,0.9)] hover:brightness-110;
+  }
+
+  .btn-lime {
+    @apply btn bg-lime-400 text-ink-950 hover:bg-lime-300;
+  }
+
+  .btn-ghost {
+    @apply btn text-zinc-300 hover:bg-white/10;
+  }
+
+  .btn-soft {
+    @apply btn border border-white/10 bg-white/[0.06] text-zinc-200 hover:bg-white/10;
+  }
+
+  .chip {
+    @apply inline-flex shrink-0 items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[12.5px] font-semibold text-zinc-300 transition hover:border-white/25 hover:text-white;
+  }
+
+  .chip-active {
+    @apply border-neon-400/70 bg-neon-500/20 text-white;
+  }
+
+  .field {
+    @apply w-full rounded-2xl border border-white/10 bg-ink-850/90 px-4 py-3 text-[15px] text-white outline-none transition placeholder:text-zinc-500 focus:border-neon-400/70 focus:ring-4 focus:ring-neon-500/15;
+  }
+
+  .label {
+    @apply mb-1.5 block text-[12.5px] font-bold text-zinc-400;
+  }
+
+  .num-badge {
+    @apply inline-flex items-center gap-1 rounded-lg px-2 py-1 font-mono text-[12px] font-bold tabular-nums;
+  }
+
+  .section-title {
+    @apply text-[18px] font-extrabold tracking-tight text-white;
+  }
+
+  .muted {
+    @apply text-[12.5px] leading-relaxed text-zinc-400;
+  }
+
+  .hairline {
+    @apply border-t border-white/[0.07];
+  }
+
+  .scroll-x {
+    @apply -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none];
+  }
+
+  .scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-bottom {
+    padding-bottom: calc(var(--safe-b));
+  }
+
+  .tab-pill {
+    @apply flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[10.5px] font-bold transition;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .lyrics-body {
+    white-space: pre-wrap;
+    line-height: 1.9;
+    letter-spacing: -0.01em;
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "sing-pick",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "대한민국 국민 노래방 필수 웹앱 싱픽 (SingPick) — TJ·금영 곡번호 검색, 상황별 추천, 랜덤 룰렛, 애창곡 키 메모, 셋리스트 공유",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173",
+    "songs": "node scripts/build-songs.mjs"
+  },
+  "dependencies": {
+    "lucide-react": "^0.451.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8"
+  }
+}
