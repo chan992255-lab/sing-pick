@@ -122,75 +122,24 @@
     @apply flex flex-1 flex-col items-center gap-0.5 rounded-2xl py-1.5 text-[10.5px] font-bold transition;
   }
 
-  /* ---------- 홈 상단 표지: 네온 노래방 무대 ---------- */
+  /* ---------- 홈 상단 표지: 3D 아트워크 + 네온 무대 ---------- */
   .hero-stage {
-    background:
-      radial-gradient(115% 85% at 10% -12%, rgba(139, 92, 246, 0.55), transparent 58%),
-      radial-gradient(85% 70% at 102% 4%, rgba(244, 63, 94, 0.32), transparent 62%),
-      radial-gradient(75% 55% at 50% 116%, rgba(163, 230, 53, 0.18), transparent 68%),
-      linear-gradient(158deg, #170f31 0%, #0c0818 54%, #08060f 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.09),
-      0 30px 70px -40px rgba(139, 92, 246, 0.85);
-  }
-
-  .hero-glitter {
+    background-color: #08060f;
     background-image:
-      radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1.6px),
-      radial-gradient(rgba(216, 180, 254, 0.8) 1px, transparent 1.6px);
-    background-size: 46px 46px, 74px 74px;
-    background-position: 0 0, 23px 31px;
-  }
-
-  .hero-beam {
-    position: absolute;
-    top: -55%;
-    height: 190%;
-    width: 62%;
-    pointer-events: none;
-    background: linear-gradient(to bottom, rgba(233, 213, 255, 0.34), rgba(233, 213, 255, 0) 68%);
-    clip-path: polygon(46% 0%, 54% 0%, 100% 100%, 0% 100%);
-    filter: blur(7px);
-    transform-origin: 50% 0;
-    animation: hero-beam-sway 11s ease-in-out infinite alternate;
-  }
-
-  .hero-beam-b {
-    background: linear-gradient(to bottom, rgba(251, 207, 232, 0.3), rgba(251, 207, 232, 0) 70%);
-    animation-duration: 13s;
-    animation-delay: -5s;
-  }
-
-  .hero-vinyl {
-    animation: hero-spin 16s linear infinite;
+      linear-gradient(100deg, rgba(6, 4, 12, 0.95) 0%, rgba(6, 4, 12, 0.78) 34%, rgba(6, 4, 12, 0.28) 64%, rgba(6, 4, 12, 0.12) 100%),
+      linear-gradient(to top, rgba(6, 4, 12, 0.96) 0%, rgba(6, 4, 12, 0.55) 28%, rgba(6, 4, 12, 0) 56%),
+      var(--hero-img);
+    background-size: cover;
+    background-position: center, center, 76% center;
+    background-repeat: no-repeat;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 30px 70px -40px rgba(139, 92, 246, 0.85);
   }
 
   .hero-eq-bar {
     transform-origin: bottom center;
     animation: hero-eq 1.25s ease-in-out infinite alternate;
-  }
-
-  .hero-twinkle {
-    animation: hero-twinkle 3.6s ease-in-out infinite;
-  }
-
-  .hero-mic-glow {
-    animation: hero-pulse 4.2s ease-in-out infinite;
-  }
-}
-
-@keyframes hero-beam-sway {
-  from {
-    transform: rotate(-5deg);
-  }
-  to {
-    transform: rotate(5deg);
-  }
-}
-
-@keyframes hero-spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 
@@ -205,34 +154,8 @@
   }
 }
 
-@keyframes hero-twinkle {
-  0%,
-  100% {
-    opacity: 0.15;
-    transform: scale(0.7);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1);
-  }
-}
-
-@keyframes hero-pulse {
-  0%,
-  100% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 0.85;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .hero-beam,
-  .hero-vinyl,
-  .hero-eq-bar,
-  .hero-twinkle,
-  .hero-mic-glow {
+  .hero-eq-bar {
     animation: none;
   }
 }
