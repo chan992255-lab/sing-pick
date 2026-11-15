@@ -175,7 +175,9 @@ export function scoreTake(
     longestGap = Math.max(longestGap, run.start - prevEnd);
     prevEnd = run.start + run.length;
   }
-  if (runs.length) longestGap = Math.max(longestGap, takeDuration - prevEnd);
+  // 소리가 아예 없었으면 전체가 한 덩어리 공백이다
+  if (!runs.length) longestGap = takeDuration;
+  else longestGap = Math.max(longestGap, takeDuration - prevEnd);
 
   // ---- 피치 ----
   const pitched = voicedFrames.filter((f) => f.pitch > 60 && f.pitchConf > 0.3);
