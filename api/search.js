@@ -117,7 +117,16 @@ function mergeResults(groups, tjHits, query) {
     if (item.tj && item.ky) s += 15;
     return s;
   };
-  return out.sort((a, b) => score(b) - score(a));
+  const ranked = out.sort((a, b) => score(b) - score(a));
+
+  // TJ 통합검색은 가수명 일부만 걸려도 결과를 준다(예: '천상연' → '천상지희').
+  // 검색어 전체가 제목이나 가수에 실제로 들어 있는 결과만 남겨 관련도를 지킨다.
+  const isNumber = /^\d{1,6}$/.test(nq);
+  const strict = ranked.filter((item) => {
+    if (isNumber) return item.tj === nq || item.ky === nq;
+    return norm(item.title).includes(nq) || norm(item.singer).includes(nq);
+  });
+  return strict.length ? strict : ranked;
 }
 
 export default async function handler(req, res) {

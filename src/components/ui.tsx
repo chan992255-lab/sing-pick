@@ -156,7 +156,7 @@ export function SongRow({
           <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
             <span className="max-w-[46vw] truncate text-[12px] text-zinc-400">{song.singer}</span>
             <NumberBadge brand="TJ" no={song.tj} />
-            <NumberBadge brand="KY" no={song.ky} />
+            {song.ky ? <NumberBadge brand="KY" no={song.ky} /> : null}
           </span>
           {subtitle ? <span className="mt-1 block text-[11.5px] text-zinc-500">{subtitle}</span> : null}
         </span>
