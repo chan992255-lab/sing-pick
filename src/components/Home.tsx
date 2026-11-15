@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, ChevronDown, Flame, Loader2, Mic, Search, Shuffle, Sparkles, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowRight, ChevronDown, Flame, Loader2, Mic, RefreshCw, Search, Shuffle, Sparkles, Trophy } from 'lucide-react';
 import { SONGS, SONG_BY_ID, type Song } from '../data/songs';
 import { AGE_CHART_IDS } from '../data/charts';
 import { useStore } from '../lib/store';
 import { fetchChart, type ChartHit } from '../lib/api';
-import { MOODS, normalize } from '../lib/format';
-import { SongRow, SectionHeader, NumberBadge } from './ui';
+import { normalize } from '../lib/format';
+import { SongRow, SectionHeader, Sheet } from './ui';
 
 type ChartTab = 'all' | 'teen' | 'twenty' | 'thirty' | 'forty' | 'fifty' | 'live';
 
@@ -18,6 +18,42 @@ const AGE_TABS: { key: ChartTab; label: string; hint: string }[] = [
   { key: 'fifty', label: '50대+ TOP', hint: '트로트·7080 국민가요' },
   { key: 'all', label: '싱픽 전체 TOP', hint: '세대 불문 국민 애창곡' },
 ];
+
+interface Situation {
+  key: string;
+  emoji: string;
+  label: string;
+  desc: string;
+  match: (song: Song) => boolean;
+}
+
+// 상황 풀 — 새로고침할 때마다 이 중 6개가 골라져 보인다.
+const SITUATIONS: Situation[] = [
+  { key: 'm-s', emoji: '🎧', label: '혼코노', desc: '혼자서 감성 터뜨리기', match: (s) => s.moods.includes('s') },
+  { key: 'm-f', emoji: '🙌', label: '친구들이랑', desc: '다 같이 신나게', match: (s) => s.moods.includes('f') },
+  { key: 'm-h', emoji: '🔥', label: '떼창·분위기 UP', desc: '마이크 놓기 금지', match: (s) => s.moods.includes('h') },
+  { key: 'm-d', emoji: '💗', label: '썸·데이트', desc: '설렘 충전', match: (s) => s.moods.includes('d') },
+  { key: 'm-g', emoji: '😤', label: '고음 해소', desc: '스트레스 삭제', match: (s) => s.moods.includes('g') },
+  { key: 'm-p', emoji: '🍻', label: '회식·가족', desc: '세대 통합', match: (s) => s.moods.includes('p') },
+  { key: 'rain', emoji: '🌧️', label: '비 오는 날 감성', desc: '창밖 보며 발라드', match: (s) => s.genre === 'ballad' && s.moods.includes('s') },
+  { key: 'dawn', emoji: '🌙', label: '새벽 이별 감성', desc: '조용히 젖어드는 밤', match: (s) => (s.genre === 'ballad' || s.genre === 'rnb') && s.vocal >= 3 },
+  { key: 'burst', emoji: '💥', label: '텐션 폭발 댄스', desc: '일어나서 춤추기', match: (s) => s.genre === 'dance' && s.heat >= 75 },
+  { key: 'rap', emoji: '🎤', label: '힙합·랩 부시기', desc: '박자에 몸 맡기기', match: (s) => s.genre === 'hiphop' || (s.genre === 'rnb' && s.moods.includes('f')) },
+  { key: 'drive', emoji: '🚗', label: '드라이브 명곡', desc: '창문 열고 달리기', match: (s) => ['rock', 'indie', 'oldpop'].includes(s.genre) && s.vocal <= 4 },
+  { key: 'old', emoji: '📻', label: '추억의 올드송', desc: '그 시절 그 노래', match: (s) => s.era <= 2010 },
+  { key: 'high5', emoji: '🗻', label: '고음 지옥 도전', desc: '오늘 한 번 질러 보기', match: (s) => s.vocal >= 5 },
+  { key: 'trot', emoji: '🌾', label: '트로트 한 곡', desc: '흥과 멋을 한 번에', match: (s) => s.genre === 'trot' },
+  { key: 'idol', emoji: '✨', label: '아이돌 떼창', desc: '요즘 곡 다 같이', match: (s) => s.genre === 'dance' && s.era >= 2010 },
+];
+
+function shufflePick<T>(list: T[], count: number): T[] {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, count);
+}
 
 function matchLocal(title: string, singer: string): Song | undefined {
   const t = normalize(title);
@@ -158,15 +194,16 @@ export function Home({
   onNavigate: (route: 'search' | 'roulette' | 'setlist' | 'library' | 'quiz') => void;
 }) {
   const [tab, setTab] = useState<ChartTab>('live');
+  const [visible, setVisible] = useState<Situation[]>(() => shufflePick(SITUATIONS, 6));
+  const [openSituation, setOpenSituation] = useState<{ situation: Situation; songs: Song[] } | null>(null);
   const { setlistSongs, favoriteSongs } = useStore();
 
-  const moodPicks = useMemo(() => {
-    const pick = (mood: string) =>
-      SONGS.filter((s) => s.moods.includes(mood as never))
-        .sort((a, b) => b.heat - a.heat)
-        .slice(0, 5);
-    return pick;
-  }, []);
+  const openSituationSongs = (situation: Situation) => {
+    const songs = SONGS.filter(situation.match)
+      .sort((a, b) => b.heat - a.heat)
+      .slice(0, 12);
+    setOpenSituation({ situation, songs });
+  };
 
   return (
     <div className="space-y-6 pb-4">
@@ -232,31 +269,58 @@ export function Home({
       </section>
 
       <section>
-        <SectionHeader title="상황별 추천" desc="지금 분위기에 딱 맞는 곡" />
+        <SectionHeader
+          title="상황별 추천"
+          desc="지금 분위기에 딱 맞는 곡"
+          action={
+            <button
+              type="button"
+              onClick={() => setVisible(shufflePick(SITUATIONS, 6))}
+              className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-1.5 text-[11.5px] font-bold text-zinc-300 transition active:scale-95"
+            >
+              <RefreshCw size={12} /> 새로고침
+            </button>
+          }
+        />
         <div className="grid grid-cols-2 gap-2">
-          {MOODS.map((mood) => {
-            const top = moodPicks(mood.key)[0];
-            return (
-              <button
-                key={mood.key}
-                type="button"
-                onClick={() => top && onOpenSong(top)}
-                className="panel flex flex-col items-start gap-1 p-3 text-left transition active:scale-[0.98]"
-              >
-                <span className="text-[18px]">{mood.emoji}</span>
-                <span className="text-[13px] font-bold text-white">{mood.label}</span>
-                <span className="text-[11px] text-zinc-400">{mood.desc}</span>
-                {top ? (
-                  <span className="mt-1 flex w-full items-center gap-1 truncate rounded-lg bg-white/5 px-2 py-1 text-[11px] text-zinc-300">
-                    <span className="truncate">{top.title}</span>
-                    <NumberBadge brand="TJ" no={top.tj} />
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
+          {visible.map((situation) => (
+            <button
+              key={situation.key}
+              type="button"
+              onClick={() => openSituationSongs(situation)}
+              className="panel flex flex-col items-start gap-1 p-3 text-left transition active:scale-[0.98]"
+            >
+              <span className="text-[18px]">{situation.emoji}</span>
+              <span className="text-[13px] font-bold text-white">{situation.label}</span>
+              <span className="text-[11px] text-zinc-400">{situation.desc}</span>
+            </button>
+          ))}
         </div>
       </section>
+
+      <Sheet
+        open={Boolean(openSituation)}
+        onClose={() => setOpenSituation(null)}
+        title={
+          <div>
+            <p className="text-[16px] font-extrabold text-white">
+              {openSituation?.situation.emoji} {openSituation?.situation.label}
+            </p>
+            <p className="text-[12px] text-zinc-400">
+              {openSituation?.situation.desc} · 추천 {openSituation?.songs.length}곡
+            </p>
+          </div>
+        }
+      >
+        <div className="space-y-1">
+          {openSituation?.songs.map((song) => (
+            <SongRow key={song.id} song={song} onOpen={onOpenSong} />
+          ))}
+          {openSituation && !openSituation.songs.length ? (
+            <p className="muted py-6 text-center">이 상황에 맞는 곡을 아직 못 찾았어요.</p>
+          ) : null}
+        </div>
+      </Sheet>
 
       {setlistSongs.length ? (
         <section>
