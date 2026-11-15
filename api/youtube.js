@@ -16,16 +16,32 @@ function decode(text) {
 
 function pickVideos(html) {
   const out = [];
-  const re = /"videoRenderer":\{"videoId":"([\w-]{11})"([\s\S]{0,4000}?)"title":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/g;
-  let match;
-  while ((match = re.exec(html)) !== null) {
-    const [, videoId, middle, rawTitle] = match;
-    const title = decode(rawTitle);
-    const isLive = /BADGE_STYLE_TYPE_LIVE_NOW|"isLive":true/.test(middle);
-    const lengthMatch = middle.match(/"lengthText":\{"accessibility":\{"accessibilityData":\{"label":"([^"]+)"/);
-    const length = lengthMatch ? lengthMatch[1] : '';
-    const mins = Number((length.match(/(\d+):\d{2}/) || [])[1] || 0);
-    out.push({ videoId, title, length, isLive, minutes: mins });
+  const marker = '"videoRenderer":{"videoId":"';
+  let idx = html.indexOf(marker);
+  while (idx !== -1) {
+    const windowText = html.slice(idx, idx + 7000);
+    const idMatch = windowText.match(/^"videoRenderer":\{"videoId":"([\w-]{11})"/);
+    if (idMatch) {
+      const titleM = windowText.match(/"title":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/);
+      const channelM =
+        windowText.match(/"longBylineText":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/) ||
+        windowText.match(/"ownerText":\{"runs":\[\{"text":"((?:[^"\\]|\\.)*)"/);
+      const lengthM = windowText.match(/"lengthText":\{[^}]*?"accessibilityData":\{"label":"([^"]+)"/);
+      const isLive = /BADGE_STYLE_TYPE_LIVE_NOW|"isLive":true/.test(windowText);
+      if (titleM) {
+        const length = lengthM ? lengthM[1] : '';
+        const mins = Number((length.match(/(\d+):\d{2}/) || [])[1] || 0);
+        out.push({
+          videoId: idMatch[1],
+          title: decode(titleM[1]),
+          channel: channelM ? decode(channelM[1]) : '',
+          length,
+          isLive,
+          minutes: mins,
+        });
+      }
+    }
+    idx = html.indexOf(marker, idx + marker.length);
   }
   return out;
 }
@@ -68,11 +84,14 @@ export default async function handler(req, res) {
     const html = await response.text();
 
     const videos = pickVideos(html).filter((v) => !v.isLive && (v.minutes === 0 || v.minutes >= 1));
-    const best = videos[0];
+    // TJ미디어·Ziller 채널은 외부 사이트 임베드를 막아 두는 경우가 많아, 다른 채널을 먼저 고른다.
+    const embedsBlocked = (v) => /tj|ziller|tjmedia/i.test(v.channel);
+    const best = videos.find((v) => !embedsBlocked(v)) || videos[0];
     const payload = best
       ? {
           videoId: best.videoId,
           title: best.title,
+          channel: best.channel,
           length: best.length,
           mode,
           keyword,

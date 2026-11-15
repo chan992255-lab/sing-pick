@@ -5,6 +5,7 @@ import type { Song } from '../data/songs';
 export interface VideoResult {
   videoId: string | null;
   title?: string;
+  channel?: string;
   reason?: string;
   embed?: string;
   watch?: string;
@@ -95,7 +96,17 @@ export function SongPlayer({ song, compact = false }: { song: Song; compact?: bo
               className="absolute inset-0 h-full w-full"
             />
           </div>
-          {state.data.title ? <p className="mt-1.5 line-clamp-2 text-[11px] text-zinc-500">{state.data.title}</p> : null}
+          {state.data.title ? (
+            <p className="mt-1.5 line-clamp-2 text-[11px] text-zinc-500">
+              {state.data.title}
+              {state.data.channel ? ` · ${state.data.channel}` : ''}
+            </p>
+          ) : null}
+          {state.data.channel && /tj|ziller/i.test(state.data.channel) ? (
+            <p className="mt-1.5 rounded-lg border border-amber-400/20 bg-amber-400/10 px-2 py-1.5 text-[10.5px] text-amber-200">
+              TJ 채널 영상은 앱 안 재생이 막혀 있을 수 있어요. 재생이 안 되면 아래 '유튜브에서 열기'를 눌러 주세요.
+            </p>
+          ) : null}
         </div>
       ) : null}
 

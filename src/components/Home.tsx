@@ -10,7 +10,7 @@ import { SongRow, SectionHeader, NumberBadge } from './ui';
 type ChartTab = 'all' | 'teen' | 'twenty' | 'thirty' | 'forty' | 'fifty' | 'live';
 
 const AGE_TABS: { key: ChartTab; label: string; hint: string }[] = [
-  { key: 'live', label: 'TJ 노래방 인기차트', hint: 'TJ미디어 공식 HOT100 · 실시간 연동' },
+  { key: 'live', label: 'TJ 노래방 인기차트', hint: '지금 노래방에서 가장 많이 불리는 곡' },
   { key: 'teen', label: '10대 TOP', hint: '요즘 아이돌·힙합·감성 발라드' },
   { key: 'twenty', label: '20대 TOP', hint: '감성 발라드·역주행 명곡' },
   { key: 'thirty', label: '30대 TOP', hint: '2000~2010년대 레전드' },
@@ -196,7 +196,7 @@ export function Home({
             <button type="button" onClick={() => onNavigate('quiz')} className="rounded-2xl border border-white/10 bg-white/10 p-3 text-left transition active:scale-[0.98]">
               <Trophy size={17} className="text-hot-400" />
               <p className="mt-2 text-[12px] font-bold text-white">18번 찾기</p>
-              <p className="text-[10.5px] text-zinc-400">3문항 테스트</p>
+              <p className="text-[10.5px] text-zinc-400">7문항 테스트</p>
             </button>
           </div>
         </div>

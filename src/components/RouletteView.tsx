@@ -110,7 +110,7 @@ export function RouletteView({ onOpenSong }: { onOpenSong: (song: Song) => void 
           </button>
           <div className="mt-2 flex flex-wrap gap-1.5">
             <NumberBadge brand="TJ" no={winner.tj} />
-            <NumberBadge brand="KY" no={winner.ky} />
+            {winner.ky ? <NumberBadge brand="KY" no={winner.ky} /> : null}
           </div>
           <div className="mt-3 flex gap-2">
             <SetlistButton song={winner} />
