@@ -10,7 +10,11 @@
   "orientation": "portrait",
   "theme_color": "#08060f",
   "background_color": "#08060f",
-  "categories": ["music", "entertainment", "utilities"],
+  "categories": [
+    "music",
+    "entertainment",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "./icon-192.png",
@@ -25,15 +29,24 @@
       "purpose": "any"
     },
     {
-      "src": "./icon-512.png",
+      "src": "./icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
   "shortcuts": [
-    { "name": "전체 곡 검색", "url": "./#/search" },
-    { "name": "랜덤 룰렛", "url": "./#/roulette" },
-    { "name": "내 애창곡", "url": "./#/library" }
+    {
+      "name": "전체 곡 검색",
+      "url": "./#/search"
+    },
+    {
+      "name": "랜덤 룰렛",
+      "url": "./#/roulette"
+    },
+    {
+      "name": "내 애창곡",
+      "url": "./#/library"
+    }
   ]
 }
